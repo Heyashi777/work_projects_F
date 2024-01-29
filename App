@@ -1,3 +1,4 @@
+# Импортируем нужные библиотеки
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -6,7 +7,6 @@ import plotly.graph_objs as go
 import plotly.express as px
 from dash import Dash, dcc, html, Input, Output, callback, dash_table
 import numpy as np
-import base64
 from dash.exceptions import PreventUpdate
 from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
 import dash_bootstrap_components as dbc
@@ -294,8 +294,9 @@ fig = go.Figure(
     layout=dict(title=dict(text="Количество людей на стадиях за последний месяц"))
 )    
 
-
+# Добавляем стиль в приложение
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# Создаём приложение 
 app = dash.Dash(name=__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
@@ -320,16 +321,23 @@ app.layout = html.Div([
 @callback(Output('tabs-content', 'children'),
               Input('tabs', 'value'), prevent_initial_call=True)
 
-def render_content(tab):
+# Наполняем кнопки смыслов, а именно для каждой: 
+# 1) Количество клиентов в прошлый месяц - потенциально сделать шкалу выбора, которая позволила бы смотреть за конкретный месяц
+# 2) Где консультант взял лиды - таблица, где написано сколько людей от куда 
+# 3) Воронка продаж - классическая воронка продаж
+# 4) Воронка провалов - не сколько воронка прям, сколько данные в % и в кол-во по провалам
+# 5) Графики по стадиям - графики за 2023 год по стадиям и кол-во людей на них 
 
+def render_content(tab):
     if tab == 'tab-2':
-        
+        # Запускаем функции, которые делают глобальные переменные с графиками и таблицами
         name_c = 'Ксения Комарова'
         line_lead_1(name_c)
         line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -342,7 +350,6 @@ def render_content(tab):
             html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
             ])
-    
     if tab == 'tab-3':
         name_c = 'Анастасия Деккер'
         line_lead_1(name_c)
@@ -360,7 +367,6 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
-
     if tab == 'tab-4':
         name_c = 'Юлия Богданова'
         line_lead_1(name_c)
@@ -378,8 +384,6 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
-
-
     if tab == 'tab-5':
         name_c = 'Елена Шавернева'
         line_lead_1(name_c)
@@ -483,6 +487,9 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_lines),
         ])    
        
-    
+# Запускаем приложение, порт можно любой
 if __name__ == '__main__':
     app.run_server(debug=True, port=8080)  
+
+# Ссылка на приложение в локальном сервере 
+app.run(jupyter_mode="external")
