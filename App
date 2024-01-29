@@ -12,9 +12,9 @@ from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 import csv
-
+# Берём локальные данные с компьютера, где собрана база данных по лидам. Планируется подключение к SQL-серверу
 main_data = pd.read_excel('/Users/erickgaydin/Desktop/main_data_c.xlsx')
-
+# Записываем в переменные основные стадии, месяцы и т.д., чтобы удобно работали циклы перебора
 month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь',
          'Ноябрь', 'Декабрь']
 clasters_name = ['Всего','Не обработан', 'В работе', 'Потребность выявлена',
@@ -25,6 +25,7 @@ name_consultants = ['Анастасия Шипулина', 'Ксения Ком�
                     'Валерий Данилов', 'Алина Позднякова']
 clasters_name_hell = ['Всего', 'Нет услуги, нужной клиенту','Ложный старт','Дорого','Провал','Не подходит по условиям',
                       'Выбрал другую компанию','Нужно позже']
+# Функция, которая строит 16 графиков по кол-ву людей на каждой стадии по месяцам
 def lines_clasters(name):
     global fig_lines
     x_0, x_1, x_2, x_3, x_4 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
@@ -99,7 +100,8 @@ def lines_clasters(name):
     fig_lines.add_trace(go.Scatter(x=month, y=x_13, name = clasters_name_1[13]), row = 7, col = 2)
     fig_lines.add_trace(go.Scatter(x=month, y=x_14, name = clasters_name_1[14]), row = 8, col = 1)
     fig_lines.add_trace(go.Scatter(x=month, y=x_15, name = clasters_name_1[15]), row = 8, col = 2)
-    
+
+# Функция, которая строит воронку продаж и воронку  провалов
 def voronka(name):
     global fig_twins, fig_twins_1
     x = np.array([
@@ -149,6 +151,7 @@ def voronka(name):
                                     ),
                                     row = 1, col = 1
                         )
+# Функия, которая строит таблицу, где показано, от куда консультанты брали лиды
 def lead_from_main():
     global df_1
     partners_name = main_data['Источник'].unique()
@@ -164,7 +167,7 @@ def lead_from_main():
                                                       ]
                                         )
     df_1 = df_1[ df_1['Кол-во лидов'] > 0 ]
-
+# Функция, которая такая же, как и прошлая
 def lead_from(name):
     global df
     partners_name = main_data['Источник'].unique()
@@ -180,125 +183,13 @@ def lead_from(name):
                                                      & (main_data['Дата создания.4']== 12)
                                                  ]
                                         )
-    df = df[ df['Кол-во лидов'] > 0 ]
-
-def sell_2(name):
-    global fig_2, fig_3
-    x_1 = np.array([])
-    for i in range( len(clasters_name_hell) ):
-        y =  len(
-                 main_data[ (main_data['Кем создан'] == name) 
-                 & (main_data['Дата создания.4'] == 12)
-                 & (main_data['Стадия'] == clasters_name_hell[i])]
-                )
-        x_1 = np.append(x_1, y)
-    data_1 = dict(
-                number= x_1,
-                stage=clasters_name_hell
-                )
-    fig_2 = px.funnel(data_1, x='number', y='stage', color_discrete_sequence = ['lightcoral'])
-    fig_3 = px.pie(values = x_1,
-             names = clasters_name_hell,
-             title = "")
-
-def sell_1(name):
-    global fig_1, fig_4
-    x = np.array([])
-    for i in range( len(clasters_name) ):
-        y =  len(
-                 main_data[ (main_data['Кем создан'] == name) 
-                 & (main_data['Дата создания.4'] == 12)
-                 & (main_data['Стадия'] == clasters_name[i])]
-                )
-        x = np.append(x, y)
-    data = dict(
-                number= x ,
-                stage=clasters_name)
-    fig_1 = px.funnel(data, x='number', y='stage')
-    fig_4 = px.pie(values = x,
-             names = clasters_name,
-             title = "")
-
-
-def line_lead_2(name):
-    global x_21, x_31, x_41, x_51, x_61, fig_101
-    x_21, x_31, x_41, x_51, x_61 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-    for j in range( 4 ):
-        for i in range(1, len(month)+1 ):
-            y = len(
-                     main_data[ (main_data['Кем создан'] == name) 
-                     & (main_data['Дата создания.4'] == i)
-                     & (main_data['Стадия'] == clasters_name_hell[j])] 
-                    )
-            if j == 0:
-                x_21 = np.append(x_21, y)
-            elif j == 1:
-                x_31 = np.append(x_31, y)
-            elif j == 2:
-                x_41 = np.append(x_41, y)
-            elif j == 3:
-                x_51 = np.append(x_51, y)
-            elif j == 4:
-                x_61 = np.append(x_61, y)
-    fig_101 = go.Figure()
-    fig_101.add_trace(go.Scatter(x=month, y=x_21, name='Нет услуги, нужной клиенту'))
-    fig_101.add_trace(go.Scatter(x=month, y=x_31, name='Ложный старт'))
-    fig_101.add_trace(go.Scatter(x=month, y=x_41, name='Дорого'))
-    fig_101.add_trace(go.Scatter(x=month, y=x_51, name='Провал'))
-    fig_101.add_trace(go.Scatter(x=month, y=x_61, name='Не подходит по условиям'))
-
-def line_lead_1(name):
-    global x_2, x_3, x_4, x_5, x_6, fig_10
-    x_2, x_3, x_4, x_5, x_6 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-    for j in range( 4 ):
-        for i in range(1, len(month)+1 ):
-            y = len(
-                    main_data[ (main_data['Кем создан'] == name) 
-                    & (main_data['Дата создания.4'] == i)
-                    & (main_data['Стадия'] == clasters_name[j])] 
-                    )
-            if j == 0:
-                x_2 = np.append(x_2, y)
-            elif j == 1:
-                x_3 = np.append(x_3, y)
-            elif j == 2:
-                x_4 = np.append(x_4, y)
-            elif j == 3:
-                x_5 = np.append(x_5, y)
-            elif j == 4:
-                x_6 = np.append(x_6, y)
-    fig_10 = go.Figure()
-    fig_10.add_trace(go.Scatter(x=month, y=x_2, name='Не обработан'))
-    fig_10.add_trace(go.Scatter(x=month, y=x_3, name='В работе'))
-    fig_10.add_trace(go.Scatter(x=month, y=x_4, name='Потребность выявлена'))
-    fig_10.add_trace(go.Scatter(x=month, y=x_5, name='КП отправлено'))
-    fig_10.add_trace(go.Scatter(x=month, y=x_6, name='Качественный лид'))
-
-fig = go.Figure(
-    data=[go.Bar(y=[
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Не обработан')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='В работе')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Нужно позже')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Потребность выявлена')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Нет услуги, нужной клиенту')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='КП отправлено')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Качественный лид')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Ложный старт')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Дорого')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Не оставлял заявку')]),
-                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Провал')])
-                   ], 
-                 x=['Не обработан','В работе', 'Нужно позже','Потребность выявлена', 'Нет услуги, нужной клиенту',
-                     'КП отправлено', 'Качественный лид', 'Ложный старт', 'Дорого', 'Не оставлял заявку',
-                     'Провал' ])],
-    layout=dict(title=dict(text="Количество людей на стадиях за последний месяц"))
-)    
+    df = df[ df['Кол-во лидов'] > 0 ]  
 
 # Добавляем стиль в приложение
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # Создаём приложение 
 app = dash.Dash(name=__name__, external_stylesheets=external_stylesheets)
-
+# Делаем наполнение приложения, а именно: кнопки на консультантов и заглавие приложения
 app.layout = html.Div([
     html.H1('Аналитика Finion',
                    style={"font-family": "'Press Start 2P'",
@@ -321,7 +212,7 @@ app.layout = html.Div([
 @callback(Output('tabs-content', 'children'),
               Input('tabs', 'value'), prevent_initial_call=True)
 
-# Наполняем кнопки смыслов, а именно для каждой: 
+# Наполняем кнопки смыслом, а именно для каждой: 
 # 1) Количество клиентов в прошлый месяц - потенциально сделать шкалу выбора, которая позволила бы смотреть за конкретный месяц
 # 2) Где консультант взял лиды - таблица, где написано сколько людей от куда 
 # 3) Воронка продаж - классическая воронка продаж
