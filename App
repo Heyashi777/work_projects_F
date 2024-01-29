@@ -1,15 +1,14 @@
 # Импортируем нужные библиотеки
+import pandas as pd
+import numpy as np
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import pandas as pd
+from dash import Dash, dcc, html, Input, Output, callback, dash_table
+from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
 import plotly.express as px
-from dash import Dash, dcc, html, Input, Output, callback, dash_table
-import numpy as np
-from dash.exceptions import PreventUpdate
-from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
-import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 import csv
 # Берём локальные данные с компьютера, где собрана база данных по лидам. Планируется подключение к SQL-серверу
@@ -38,8 +37,6 @@ def lines_clasters(name):
                        'Не оставлял заявку', 'Провал', 'Техническая заявка',
                        'Не подходит по условиям', 'Перестал отвечать (спустя 14 дней)',
                        'Выбрал другую компанию']
-    month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь',
-             'Октябрь', 'Ноябрь', 'Декабрь']
     for j in range(16):
         for i in range(1, 13):
             y = len (
@@ -152,22 +149,7 @@ def voronka(name):
                                     row = 1, col = 1
                         )
 # Функия, которая строит таблицу, где показано, от куда консультанты брали лиды
-def lead_from_main():
-    global df_1
-    partners_name = main_data['Источник'].unique()
-    df_1 = pd.DataFrame()
-    df_1['Источник'] = range(len(partners_name))
-    df_1['Кол-во лидов'] = range(len(partners_name))
-    for i in range( len(partners_name) ):
-        df_1.at[i, 'Источник'] = partners_name[i]
-        df_1.at[i, 'Кол-во лидов'] = len(
-                                            main_data[
-                                                        (main_data['Дата создания.4']== 12)&
-                                                        (main_data['Источник']== partners_name[i])
-                                                      ]
-                                        )
-    df_1 = df_1[ df_1['Кол-во лидов'] > 0 ]
-# Функция, которая такая же, как и прошлая
+
 def lead_from(name):
     global df
     partners_name = main_data['Источник'].unique()
@@ -184,7 +166,7 @@ def lead_from(name):
                                                  ]
                                         )
     df = df[ df['Кол-во лидов'] > 0 ]  
-
+##################################################################################################
 # Добавляем стиль в приложение
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # Создаём приложение 
@@ -364,6 +346,6 @@ def render_content(tab):
 if __name__ == '__main__':
     app.run_server(debug=True, port=8180)
 
-
+##########################################################
 # Открываем приложение 
 # app.run(jupyter_mode="external", port=8180)
