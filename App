@@ -1,0 +1,488 @@
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+import pandas as pd
+import plotly.graph_objs as go
+import plotly.express as px
+from dash import Dash, dcc, html, Input, Output, callback, dash_table
+import numpy as np
+import base64
+from dash.exceptions import PreventUpdate
+from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
+import dash_bootstrap_components as dbc
+from plotly.subplots import make_subplots
+import csv
+
+main_data = pd.read_excel('/Users/erickgaydin/Desktop/main_data_c.xlsx')
+
+month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь',
+         'Ноябрь', 'Декабрь']
+clasters_name = ['Всего','Не обработан', 'В работе', 'Потребность выявлена',
+                 'КП отправлено', 'Качественный лид',  'Не оставлял заявку', 'Техническая заявка',
+                 'Перестал отвечать (спустя 14 дней)']
+name_consultants = ['Анастасия Шипулина', 'Ксения Комарова', 'Юлия Збрыкина', 'Елена Шавернева', 'Ксения Цветкова',
+                    'Анастасия Деккер', 'Юлия Богданова',
+                    'Валерий Данилов', 'Алина Позднякова']
+clasters_name_hell = ['Всего', 'Нет услуги, нужной клиенту','Ложный старт','Дорого','Провал','Не подходит по условиям',
+                      'Выбрал другую компанию','Нужно позже']
+def lines_clasters(name):
+    global fig_lines
+    x_0, x_1, x_2, x_3, x_4 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    x_5, x_6, x_7, x_8, x_9 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    x_10, x_11, x_12, x_13, x_14 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    x_15 = np.array([])
+    clasters_name_1 = ['Не обработан', 'В работе', 'Нужно позже', 'Потребность выявлена',
+                       'Нет услуги, нужной клиенту', 'КП отправлено', 'Качественный лид',
+                       'Ложный старт', 'Не можем отправить сообщение', 'Дорого',
+                       'Не оставлял заявку', 'Провал', 'Техническая заявка',
+                       'Не подходит по условиям', 'Перестал отвечать (спустя 14 дней)',
+                       'Выбрал другую компанию']
+    month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь',
+             'Октябрь', 'Ноябрь', 'Декабрь']
+    for j in range(16):
+        for i in range(1, 13):
+            y = len (
+                main_data[ (main_data['Кем создан'] == name) &
+                           (main_data['Дата создания.4'] == i) &
+                           (main_data['Стадия'] == clasters_name_1[j])
+                         ] 
+                    )
+            if j == 0:
+                x_0 = np.append(x_0, y)
+            elif j == 1:
+                x_1 = np.append(x_1, y)
+            elif j == 2:
+                x_2 = np.append(x_2, y)
+            elif j == 3:
+                x_3 = np.append(x_3, y)
+            elif j == 4:
+                x_4 = np.append(x_4, y)
+            elif j == 5:
+                x_5 = np.append(x_5, y)
+            elif j == 6:
+                x_6 = np.append(x_6, y)
+            elif j == 7:
+                x_7 = np.append(x_7, y)
+            elif j == 8:
+                x_8 = np.append(x_8, y)
+            elif j == 9:
+                x_9 = np.append(x_9, y)
+            elif j == 10:
+                x_10 = np.append(x_10, y)
+            elif j == 11:
+                x_11 = np.append(x_11, y)
+            elif j == 12:
+                x_12 = np.append(x_12, y)
+            elif j == 13:
+                x_13 = np.append(x_13, y)
+            elif j == 14:
+                x_14 = np.append(x_14, y)
+            elif j == 15:
+                x_15 = np.append(x_15, y)
+    fig_lines = make_subplots(rows = 8, cols = 2, subplot_titles = clasters_name_1)
+    fig_lines.update_layout(height=1800, width=1250, title_text="Графики кол-во людей на разных стадиях")
+    fig_lines.update_xaxes(title_text="Месяц")
+    fig_lines.update_yaxes(title_text="Кол-во клиентов")
+    fig_lines.add_trace(go.Scatter(x=month, y=x_0, name = clasters_name_1[0]), row = 1, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_1, name = clasters_name_1[1]), row = 1, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_2, name = clasters_name_1[2]), row = 2, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_3, name = clasters_name_1[3]), row = 2, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_4, name = clasters_name_1[4]), row = 3, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_5, name = clasters_name_1[5]), row = 3, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_6, name = clasters_name_1[6]), row = 4, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_7, name = clasters_name_1[7]), row = 4, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_8, name = clasters_name_1[8]), row = 5, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_9, name = clasters_name_1[9]), row = 5, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_10, name = clasters_name_1[10]), row = 6, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_11, name = clasters_name_1[11]), row = 6, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_12, name = clasters_name_1[12]), row = 7, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_13, name = clasters_name_1[13]), row = 7, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_14, name = clasters_name_1[14]), row = 8, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_15, name = clasters_name_1[15]), row = 8, col = 2)
+    
+def voronka(name):
+    global fig_twins, fig_twins_1
+    x = np.array([
+                    len(main_data[ (main_data['Кем создан'] == name) 
+                     & (main_data['Дата создания.4'] == 12)] ) 
+                ])
+
+    for i in range( len(clasters_name) ):
+        y =  len(
+                 main_data[ (main_data['Кем создан'] == name) 
+                 & (main_data['Дата создания.4'] == 12)
+                 & (main_data['Стадия'] == clasters_name[i])] 
+                )
+        x = np.append(x, y)
+
+    x_1 = np.array([
+                    len(
+                            main_data[ (main_data['Кем создан'] == name) 
+                         & (main_data['Дата создания.4'] == 12)] 
+                        ) 
+                    ])
+
+    for i in range( len(clasters_name_hell) ):
+        y =  len(
+                    main_data[ (main_data['Кем создан'] == name) 
+                 & (main_data['Дата создания.4'] == 12)
+                 & (main_data['Стадия'] == clasters_name_hell[i])] 
+                )
+        x_1 = np.append(x_1, y)
+
+    fig_twins = make_subplots(rows = 1, cols = 1 ) 
+    fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+    fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+    fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
+def lead_from_main():
+    global df_1
+    partners_name = main_data['Источник'].unique()
+    df_1 = pd.DataFrame()
+    df_1['Источник'] = range(len(partners_name))
+    df_1['Кол-во лидов'] = range(len(partners_name))
+    for i in range( len(partners_name) ):
+        df_1.at[i, 'Источник'] = partners_name[i]
+        df_1.at[i, 'Кол-во лидов'] = len(
+                                            main_data[
+                                                        (main_data['Дата создания.4']== 12)&
+                                                        (main_data['Источник']== partners_name[i])
+                                                      ]
+                                        )
+    df_1 = df_1[ df_1['Кол-во лидов'] > 0 ]
+
+def lead_from(name):
+    global df
+    partners_name = main_data['Источник'].unique()
+    df = pd.DataFrame()
+    df['Источник'] = range(len(partners_name))
+    df['Кол-во лидов'] = range(len(partners_name))
+    for i in range( len(partners_name) ):
+        df.at[i, 'Источник'] = partners_name[i]
+        df.at[i, 'Кол-во лидов'] = len(
+                                        main_data[ 
+                                                       (main_data['Кем создан']== name)
+                                                     & (main_data['Источник']== partners_name[i])
+                                                     & (main_data['Дата создания.4']== 12)
+                                                 ]
+                                        )
+    df = df[ df['Кол-во лидов'] > 0 ]
+
+def sell_2(name):
+    global fig_2, fig_3
+    x_1 = np.array([])
+    for i in range( len(clasters_name_hell) ):
+        y =  len(
+                 main_data[ (main_data['Кем создан'] == name) 
+                 & (main_data['Дата создания.4'] == 12)
+                 & (main_data['Стадия'] == clasters_name_hell[i])]
+                )
+        x_1 = np.append(x_1, y)
+    data_1 = dict(
+                number= x_1,
+                stage=clasters_name_hell
+                )
+    fig_2 = px.funnel(data_1, x='number', y='stage', color_discrete_sequence = ['lightcoral'])
+    fig_3 = px.pie(values = x_1,
+             names = clasters_name_hell,
+             title = "")
+
+def sell_1(name):
+    global fig_1, fig_4
+    x = np.array([])
+    for i in range( len(clasters_name) ):
+        y =  len(
+                 main_data[ (main_data['Кем создан'] == name) 
+                 & (main_data['Дата создания.4'] == 12)
+                 & (main_data['Стадия'] == clasters_name[i])]
+                )
+        x = np.append(x, y)
+    data = dict(
+                number= x ,
+                stage=clasters_name)
+    fig_1 = px.funnel(data, x='number', y='stage')
+    fig_4 = px.pie(values = x,
+             names = clasters_name,
+             title = "")
+
+
+def line_lead_2(name):
+    global x_21, x_31, x_41, x_51, x_61, fig_101
+    x_21, x_31, x_41, x_51, x_61 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    for j in range( 4 ):
+        for i in range(1, len(month)+1 ):
+            y = len(
+                     main_data[ (main_data['Кем создан'] == name) 
+                     & (main_data['Дата создания.4'] == i)
+                     & (main_data['Стадия'] == clasters_name_hell[j])] 
+                    )
+            if j == 0:
+                x_21 = np.append(x_21, y)
+            elif j == 1:
+                x_31 = np.append(x_31, y)
+            elif j == 2:
+                x_41 = np.append(x_41, y)
+            elif j == 3:
+                x_51 = np.append(x_51, y)
+            elif j == 4:
+                x_61 = np.append(x_61, y)
+    fig_101 = go.Figure()
+    fig_101.add_trace(go.Scatter(x=month, y=x_21, name='Нет услуги, нужной клиенту'))
+    fig_101.add_trace(go.Scatter(x=month, y=x_31, name='Ложный старт'))
+    fig_101.add_trace(go.Scatter(x=month, y=x_41, name='Дорого'))
+    fig_101.add_trace(go.Scatter(x=month, y=x_51, name='Провал'))
+    fig_101.add_trace(go.Scatter(x=month, y=x_61, name='Не подходит по условиям'))
+
+def line_lead_1(name):
+    global x_2, x_3, x_4, x_5, x_6, fig_10
+    x_2, x_3, x_4, x_5, x_6 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    for j in range( 4 ):
+        for i in range(1, len(month)+1 ):
+            y = len(
+                    main_data[ (main_data['Кем создан'] == name) 
+                    & (main_data['Дата создания.4'] == i)
+                    & (main_data['Стадия'] == clasters_name[j])] 
+                    )
+            if j == 0:
+                x_2 = np.append(x_2, y)
+            elif j == 1:
+                x_3 = np.append(x_3, y)
+            elif j == 2:
+                x_4 = np.append(x_4, y)
+            elif j == 3:
+                x_5 = np.append(x_5, y)
+            elif j == 4:
+                x_6 = np.append(x_6, y)
+    fig_10 = go.Figure()
+    fig_10.add_trace(go.Scatter(x=month, y=x_2, name='Не обработан'))
+    fig_10.add_trace(go.Scatter(x=month, y=x_3, name='В работе'))
+    fig_10.add_trace(go.Scatter(x=month, y=x_4, name='Потребность выявлена'))
+    fig_10.add_trace(go.Scatter(x=month, y=x_5, name='КП отправлено'))
+    fig_10.add_trace(go.Scatter(x=month, y=x_6, name='Качественный лид'))
+
+fig = go.Figure(
+    data=[go.Bar(y=[
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Не обработан')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='В работе')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Нужно позже')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Потребность выявлена')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Нет услуги, нужной клиенту')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='КП отправлено')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Качественный лид')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Ложный старт')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Дорого')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Не оставлял заявку')]),
+                    len(main_data[(main_data['Дата создания.4']==12)&(main_data['Стадия']=='Провал')])
+                   ], 
+                 x=['Не обработан','В работе', 'Нужно позже','Потребность выявлена', 'Нет услуги, нужной клиенту',
+                     'КП отправлено', 'Качественный лид', 'Ложный старт', 'Дорого', 'Не оставлял заявку',
+                     'Провал' ])],
+    layout=dict(title=dict(text="Количество людей на стадиях за последний месяц"))
+)    
+
+
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(name=__name__, external_stylesheets=external_stylesheets)
+
+app.layout = html.Div([
+    html.H1('Аналитика Finion',
+                   style={"font-family": "'Press Start 2P'",
+                          'textAlign': 'center', 'color': 'black', 'fontSize': 30}),
+    dcc.Tabs(id="tabs", value='tab-1', children=[
+        dcc.Tab(label='Ксения Комарова', value='tab-2'),
+        dcc.Tab(label='Анастасия Деккер', value='tab-3'),
+        dcc.Tab(label='Юлия Богданова', value='tab-4'),
+        dcc.Tab(label='Елена Шавернева', value='tab-5'),
+        dcc.Tab(label="Ксения Цветкова", value='tab-6'),
+        dcc.Tab(label="Юлия Збрыкина", value='tab-7'),
+        dcc.Tab(label="Анастасия Шипулина", value='tab-8'),
+        dcc.Tab(label="<Без имени>", value='tab-9'),
+        dcc.Tab(label='Администратор Портала', value='tab-10'),
+        
+    ]),
+    html.Div(id='tabs-content')
+    ])
+
+@callback(Output('tabs-content', 'children'),
+              Input('tabs', 'value'), prevent_initial_call=True)
+
+def render_content(tab):
+
+    if tab == 'tab-2':
+        
+        name_c = 'Ксения Комарова'
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            html.H4('Воронка провалов'),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            html.H4('Динамика по стадиям'),
+            dcc.Graph(id="graph", figure=fig_lines),
+            ])
+    
+    if tab == 'tab-3':
+        name_c = 'Анастасия Деккер'
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])
+
+    if tab == 'tab-4':
+        name_c = 'Юлия Богданова'
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])
+
+
+    if tab == 'tab-5':
+        name_c = 'Елена Шавернева'
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])
+    if tab == 'tab-6':
+        name_c = "Ксения Цветкова"
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])
+    if tab == 'tab-7':
+        name_c = "Юлия Збрыкина"
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])   
+    if tab == 'tab-8':
+        name_c = "Анастасия Шипулина"
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])   
+    if tab == 'tab-9':
+        name_c = "<Без имени>"
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])
+    if tab == 'tab-10':
+        name_c = "Администратор Портала"
+        line_lead_1(name_c)
+        line_lead_2(name_c)
+        voronka(name_c)
+        lead_from(name_c)
+        lines_clasters(name_c)
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            dcc.Graph(id="graph", figure=fig_lines),
+        ])    
+       
+    
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8080)  
