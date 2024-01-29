@@ -1,0 +1,6 @@
+pip instal dash
+pip instal dash_core_components
+pip instal dash_html_components
+pip instal statsmodels
+pip instal dash_bootstrap_components
+pip instal plotly
