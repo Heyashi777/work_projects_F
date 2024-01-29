@@ -363,3 +363,7 @@ def render_content(tab):
 # Запускаем приложение, порт можно любой
 if __name__ == '__main__':
     app.run_server(debug=True, port=8180)
+
+
+# Открываем приложение 
+app.run(jupyter_mode="external", port=8180)
