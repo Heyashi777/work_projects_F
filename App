@@ -209,7 +209,7 @@ app.layout = html.Div([
     html.Div(id='tabs-content')
     ])
 
-@callback(Output('tabs-content', 'children'),
+@callback(Output('tabs-content', 'children',allow_duplicate=False),
               Input('tabs', 'value'), prevent_initial_call=True)
 
 # Наполняем кнопки смыслом, а именно для каждой: 
@@ -223,8 +223,6 @@ def render_content(tab):
     if tab == 'tab-2':
         # Запускаем функции, которые делают глобальные переменные с графиками и таблицами
         name_c = 'Ксения Комарова'
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -243,8 +241,6 @@ def render_content(tab):
             ])
     if tab == 'tab-3':
         name_c = 'Анастасия Деккер'
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -260,8 +256,6 @@ def render_content(tab):
         ])
     if tab == 'tab-4':
         name_c = 'Юлия Богданова'
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -277,8 +271,6 @@ def render_content(tab):
         ])
     if tab == 'tab-5':
         name_c = 'Елена Шавернева'
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -294,8 +286,6 @@ def render_content(tab):
         ])
     if tab == 'tab-6':
         name_c = "Ксения Цветкова"
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -311,8 +301,6 @@ def render_content(tab):
         ])
     if tab == 'tab-7':
         name_c = "Юлия Збрыкина"
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -328,8 +316,6 @@ def render_content(tab):
         ])   
     if tab == 'tab-8':
         name_c = "Анастасия Шипулина"
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -345,8 +331,6 @@ def render_content(tab):
         ])   
     if tab == 'tab-9':
         name_c = "<Без имени>"
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -362,8 +346,6 @@ def render_content(tab):
         ])
     if tab == 'tab-10':
         name_c = "Администратор Портала"
-        line_lead_1(name_c)
-        line_lead_2(name_c)
         voronka(name_c)
         lead_from(name_c)
         lines_clasters(name_c)
@@ -380,7 +362,4 @@ def render_content(tab):
        
 # Запускаем приложение, порт можно любой
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8080)  
-
-# Ссылка на приложение в локальном сервере 
-app.run(jupyter_mode="external")
+    app.run_server(debug=True, port=8180)
