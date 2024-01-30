@@ -8,10 +8,102 @@ import plotly.express as px
 from dash import Dash, dcc, html, Input, Output, callback, dash_table
 import numpy as np
 from dash.exceptions import PreventUpdate
-from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 import csv
+from sklearn.linear_model import LinearRegression
+import datetime
+
+# Функция, которая строит стобчатый график и линию тренда
+def line_new(name):
+    global fig_lines
+    
+    x_0, x_1, x_2, x_3, x_4 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    x_5, x_6, x_7, x_8, x_9 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    x_10, x_11, x_12, x_13, x_14 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+    x_15 = np.array([])
+    
+    clasters_name_1 = ['Не обработан', 'В работе', 'Нужно позже', 'Потребность выявлена',
+                       'Нет услуги, нужной клиенту', 'КП отправлено', 'Качественный лид',
+                       'Ложный старт', 'Не можем отправить сообщение', 'Дорого',
+                       'Не оставлял заявку', 'Провал', 'Техническая заявка',
+                       'Не подходит по условиям', 'Перестал отвечать (спустя 14 дней)',
+                       'Выбрал другую компанию']
+    month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь',
+             'Октябрь', 'Ноябрь', 'Декабрь']
+    
+    for j in range(16):
+        for i in range(1, 13):
+            y = len (
+                main_data[ (main_data['Кем создан'] == name) &
+                           (main_data['Дата создания.4'] == i) &
+                           (main_data['Стадия'] == clasters_name_1[j])
+                         ] 
+                    )
+            if j == 0:
+                x_0 = np.append(x_0, y)
+            elif j == 1:
+                x_1 = np.append(x_1, y)
+            elif j == 2:
+                x_2 = np.append(x_2, y)
+            elif j == 3:
+                x_3 = np.append(x_3, y)
+            elif j == 4:
+                x_4 = np.append(x_4, y)
+            elif j == 5:
+                x_5 = np.append(x_5, y)
+            elif j == 6:
+                x_6 = np.append(x_6, y)
+            elif j == 7:
+                x_7 = np.append(x_7, y)
+            elif j == 8:
+                x_8 = np.append(x_8, y)
+            elif j == 9:
+                x_9 = np.append(x_9, y)
+            elif j == 10:
+                x_10 = np.append(x_10, y)
+            elif j == 11:
+                x_11 = np.append(x_11, y)
+            elif j == 12:
+                x_12 = np.append(x_12, y)
+            elif j == 13:
+                x_13 = np.append(x_13, y)
+            elif j == 14:
+                x_14 = np.append(x_14, y)
+            elif j == 15:
+                x_15 = np.append(x_15, y)
+                
+    array = [x_0, x_1, x_2, x_3, x_4,x_5, x_6, x_7, x_8, x_9,x_10, x_11, x_12, x_13, x_14,x_15 ]   
+    array_1 = np.array([])
+    
+    for i in range( len(array) ):
+        df = pd.DataFrame()
+        df['count'] = array[i]
+        Y=df['count']
+        X=df.index
+        # regression
+        reg = LinearRegression().fit(np.vstack(X), Y)
+        df['bestfit'] = reg.predict(np.vstack(X))
+        array_1 = np.append(array_1, df['bestfit'])
+        # plotly figure setup
+        figure=go.Figure()
+        figure.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=Y.values))
+        figure.add_trace(go.Scatter(name='линия тренда', x=month, y=df['bestfit'], mode='lines'))
+        # plotly figure layout
+        figure.update_layout(xaxis_title = 'месяц', yaxis_title = 'кол-во клиентов')
+
+    fig_lines = make_subplots(rows = 8, cols = 2, subplot_titles = clasters_name_1)
+    fig_lines.update_layout(height=1800, width=1250, title_text="Графики кол-во людей на разных стадиях")
+    fig_lines.update_xaxes(title_text="Месяц")
+    fig_lines.update_yaxes(title_text="Кол-во клиентов")
+    
+    for i in range(1,9):
+        fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[i - 1],showlegend=False), row = i, col = 1)
+        fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (i-1)*12 : 12 + (i-1)*12], mode='lines',showlegend=False), row = i, col = 1)
+    for i in range(1,9):
+        fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[7 + i],showlegend=False), row = i, col = 2)
+        fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (7+i)*12 : 12 + (7+i)*12], mode='lines',showlegend=False), row = i, col = 2)
+
 # Берём локальные данные с компьютера, где собрана база данных по лидам. Планируется подключение к SQL-серверу
 main_data = pd.read_excel('/Users/erickgaydin/Desktop/main_data_c.xlsx')
 # Записываем в переменные основные стадии, месяцы и т.д., чтобы удобно работали циклы перебора
@@ -113,7 +205,7 @@ def lines_clasters(name):
     fig_lines.add_trace(go.Scatter(x=month, y=x_14, name = clasters_name_1[14],showlegend=False), row = 8, col = 1)
     fig_lines.add_trace(go.Scatter(x=month, y=x_15, name = clasters_name_1[15],showlegend=False), row = 8, col = 2)
 
-# Функция, которая составляет данные для графиков воронок
+# Функция, которая строит воронку продаж и воронку  провалов
 def voronka(name):
     global x, x_1
 
@@ -179,8 +271,8 @@ def lead_from(name):
                                                  ]
                                         )
     df = df[ df['Кол-во лидов'] > 0 ]  
-##########################################################
-##########################################################
+########################################################
+########################################################
 # Добавляем стиль в приложение
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # Создаём приложение 
@@ -215,6 +307,7 @@ app.layout = html.Div([
 # 5) Графики по стадиям - графики за 2023 год по стадиям и кол-во людей на них 
 
 def render_content(tab):
+        
     if tab == 'tab-2':
         # Запускаем функции, которые делают глобальные переменные с графиками и таблицами
         name_c = 'Ксения Комарова'
@@ -239,7 +332,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
          # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
@@ -253,9 +347,11 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
-            ])
+            dcc.Graph(id="graph", figure=fig_lines)
+        ])
+            
     if tab == 'tab-3':
+            
         name_c = 'Анастасия Деккер'
         voronka(name_c)
         fig_twins = make_subplots(rows = 1, cols = 1 ) 
@@ -278,7 +374,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -315,7 +412,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -352,7 +450,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -389,7 +488,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -426,7 +526,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -463,7 +564,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -500,7 +602,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -537,7 +640,8 @@ def render_content(tab):
                                     row = 1, col = 1
                         )
         lead_from(name_c)
-        lines_clasters(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
