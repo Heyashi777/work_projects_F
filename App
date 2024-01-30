@@ -1,14 +1,15 @@
 # Импортируем нужные библиотеки
-import pandas as pd
-import numpy as np
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash import Dash, dcc, html, Input, Output, callback, dash_table
-from dash.exceptions import PreventUpdate
-import dash_bootstrap_components as dbc
+import pandas as pd
 import plotly.graph_objs as go
 import plotly.express as px
+from dash import Dash, dcc, html, Input, Output, callback, dash_table
+import numpy as np
+from dash.exceptions import PreventUpdate
+from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
+import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 import csv
 # Берём локальные данные с компьютера, где собрана база данных по лидам. Планируется подключение к SQL-серверу
@@ -24,7 +25,19 @@ name_consultants = ['Анастасия Шипулина', 'Ксения Ком�
                     'Валерий Данилов', 'Алина Позднякова']
 clasters_name_hell = ['Всего', 'Нет услуги, нужной клиенту','Ложный старт','Дорого','Провал','Не подходит по условиям',
                       'Выбрал другую компанию','Нужно позже']
+# Функция, которая строит таблицу: у какого консультанта сколько клиентов 
+def how_clients_all():
+    global data_how_clients
+    data_how_clients = pd.DataFrame()
+    data_how_clients['Имя'] = range(len(name_consultants))
+    data_how_clients['Кол-во человек'] = range(len(name_consultants))
+    for i in range( len(name_consultants) ):
+        data_how_clients.at[i,'Имя'] = name_consultants[i]
+        data_how_clients.at[i,'Кол-во человек'] = len(main_data[ (main_data['Кем создан'] == name_consultants[i])
+                                                                & (main_data['Дата создания.4'] == 12 ) ])
+        
 # Функция, которая строит 16 графиков по кол-ву людей на каждой стадии по месяцам
+
 def lines_clasters(name):
     global fig_lines
     x_0, x_1, x_2, x_3, x_4 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
@@ -37,6 +50,8 @@ def lines_clasters(name):
                        'Не оставлял заявку', 'Провал', 'Техническая заявка',
                        'Не подходит по условиям', 'Перестал отвечать (спустя 14 дней)',
                        'Выбрал другую компанию']
+    month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь',
+             'Октябрь', 'Ноябрь', 'Декабрь']
     for j in range(16):
         for i in range(1, 13):
             y = len (
@@ -81,29 +96,31 @@ def lines_clasters(name):
     fig_lines.update_layout(height=1800, width=1250, title_text="Графики кол-во людей на разных стадиях")
     fig_lines.update_xaxes(title_text="Месяц")
     fig_lines.update_yaxes(title_text="Кол-во клиентов")
-    fig_lines.add_trace(go.Scatter(x=month, y=x_0, name = clasters_name_1[0]), row = 1, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_1, name = clasters_name_1[1]), row = 1, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_2, name = clasters_name_1[2]), row = 2, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_3, name = clasters_name_1[3]), row = 2, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_4, name = clasters_name_1[4]), row = 3, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_5, name = clasters_name_1[5]), row = 3, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_6, name = clasters_name_1[6]), row = 4, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_7, name = clasters_name_1[7]), row = 4, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_8, name = clasters_name_1[8]), row = 5, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_9, name = clasters_name_1[9]), row = 5, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_10, name = clasters_name_1[10]), row = 6, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_11, name = clasters_name_1[11]), row = 6, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_12, name = clasters_name_1[12]), row = 7, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_13, name = clasters_name_1[13]), row = 7, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_14, name = clasters_name_1[14]), row = 8, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_15, name = clasters_name_1[15]), row = 8, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_0, name = clasters_name_1[0],showlegend=False), row = 1, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_1, name = clasters_name_1[1],showlegend=False), row = 1, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_2, name = clasters_name_1[2],showlegend=False), row = 2, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_3, name = clasters_name_1[3],showlegend=False), row = 2, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_4, name = clasters_name_1[4],showlegend=False), row = 3, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_5, name = clasters_name_1[5],showlegend=False), row = 3, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_6, name = clasters_name_1[6],showlegend=False), row = 4, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_7, name = clasters_name_1[7],showlegend=False), row = 4, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_8, name = clasters_name_1[8],showlegend=False), row = 5, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_9, name = clasters_name_1[9],showlegend=False), row = 5, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_10, name = clasters_name_1[10],showlegend=False), row = 6, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_11, name = clasters_name_1[11],showlegend=False), row = 6, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_12, name = clasters_name_1[12],showlegend=False), row = 7, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_13, name = clasters_name_1[13],showlegend=False), row = 7, col = 2)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_14, name = clasters_name_1[14],showlegend=False), row = 8, col = 1)
+    fig_lines.add_trace(go.Scatter(x=month, y=x_15, name = clasters_name_1[15],showlegend=False), row = 8, col = 2)
 
-# Функция, которая строит воронку продаж и воронку  провалов
+# Функция, которая составляет данные для графиков воронок
 def voronka(name):
-    global fig_twins, fig_twins_1
+    global x, x_1
+
     x = np.array([
-                    len(main_data[ (main_data['Кем создан'] == name) 
-                     & (main_data['Дата создания.4'] == 12)] ) 
+                    len(
+                        main_data[ (main_data['Кем создан'] == name) 
+                        & (main_data['Дата создания.4'] == 12)] ) 
                 ])
 
     for i in range( len(clasters_name) ):
@@ -129,27 +146,23 @@ def voronka(name):
                 )
         x_1 = np.append(x_1, y)
 
-    fig_twins = make_subplots(rows = 1, cols = 1 ) 
-    fig_twins.add_trace(go.Funnel(
-                                    y = clasters_name,
-                                    x = x,
-                                    textposition = "inside",
-                                    textinfo = "value+percent initial"
-                                 ),
-                                    row = 1, col = 1
-                        )
-    fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
-    fig_twins_1.add_trace(go.Funnel(
-                                    y = clasters_name_hell,
-                                    x = x_1,
-                                    textposition = "inside",
-                                    textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
-                                    ),
-                                    row = 1, col = 1
-                        )
 # Функия, которая строит таблицу, где показано, от куда консультанты брали лиды
-
+def lead_from_main():
+    global df_1
+    partners_name = main_data['Источник'].unique()
+    df_1 = pd.DataFrame()
+    df_1['Источник'] = range(len(partners_name))
+    df_1['Кол-во лидов'] = range(len(partners_name))
+    for i in range( len(partners_name) ):
+        df_1.at[i, 'Источник'] = partners_name[i]
+        df_1.at[i, 'Кол-во лидов'] = len(
+                                            main_data[
+                                                        (main_data['Дата создания.4']== 12)&
+                                                        (main_data['Источник']== partners_name[i])
+                                                      ]
+                                        )
+    df_1 = df_1[ df_1['Кол-во лидов'] > 0 ]
+# Функция, которая такая же, как и прошлая
 def lead_from(name):
     global df
     partners_name = main_data['Источник'].unique()
@@ -166,7 +179,8 @@ def lead_from(name):
                                                  ]
                                         )
     df = df[ df['Кол-во лидов'] > 0 ]  
-##################################################################################################
+##########################################################
+##########################################################
 # Добавляем стиль в приложение
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # Создаём приложение 
@@ -176,7 +190,7 @@ app.layout = html.Div([
     html.H1('Аналитика Finion',
                    style={"font-family": "'Press Start 2P'",
                           'textAlign': 'center', 'color': 'black', 'fontSize': 30}),
-    dcc.Tabs(id="tabs", value='tab-1', children=[
+    dcc.Tabs(id="tabs", value='tab-0', children=[
         dcc.Tab(label='Ксения Комарова', value='tab-2'),
         dcc.Tab(label='Анастасия Деккер', value='tab-3'),
         dcc.Tab(label='Юлия Богданова', value='tab-4'),
@@ -185,8 +199,7 @@ app.layout = html.Div([
         dcc.Tab(label="Юлия Збрыкина", value='tab-7'),
         dcc.Tab(label="Анастасия Шипулина", value='tab-8'),
         dcc.Tab(label="<Без имени>", value='tab-9'),
-        dcc.Tab(label='Администратор Портала', value='tab-10'),
-        
+        dcc.Tab(label='Администратор Портала', value='tab-10'),      
     ]),
     html.Div(id='tabs-content')
     ])
@@ -206,6 +219,25 @@ def render_content(tab):
         # Запускаем функции, которые делают глобальные переменные с графиками и таблицами
         name_c = 'Ксения Комарова'
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
          # Создаём наполнение кнопки
@@ -216,14 +248,35 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
             ])
     if tab == 'tab-3':
         name_c = 'Анастасия Деккер'
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -233,12 +286,34 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-4':
         name_c = 'Юлия Богданова'
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -248,12 +323,34 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-5':
         name_c = 'Елена Шавернева'
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -263,12 +360,34 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-6':
         name_c = "Ксения Цветкова"
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -278,12 +397,34 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-7':
         name_c = "Юлия Збрыкина"
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -293,12 +434,34 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])   
     if tab == 'tab-8':
         name_c = "Анастасия Шипулина"
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -308,12 +471,34 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])   
     if tab == 'tab-9':
         name_c = "<Без имени>"
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -323,12 +508,34 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-10':
         name_c = "Администратор Портала"
         voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial"
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
         lead_from(name_c)
         lines_clasters(name_c)
         return html.Div([
@@ -338,14 +545,18 @@ def render_content(tab):
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
             dcc.Graph(id="graph", figure=fig_lines),
         ])    
        
 # Запускаем приложение, порт можно любой
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8180)
+    app.run_server(debug=True, port=8180, use_reloader=False)  
 
+##########################################################
 ##########################################################
 # Открываем приложение 
 # app.run(jupyter_mode="external", port=8180)
