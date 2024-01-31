@@ -98,24 +98,28 @@ def line_new(name):
     fig_lines.update_yaxes(title_text="Кол-во клиентов")
     
     for i in range(1,9):
-        fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[i - 1],showlegend=False), row = i, col = 1)
-        fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (i-1)*12 : 12 + (i-1)*12], mode='lines',showlegend=False), row = i, col = 1)
+        fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[i - 1],
+                                   showlegend=False,marker_color='blue'), row = i, col = 1)
+        fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (i-1)*12 : 12 + (i-1)*12],
+                                       mode='lines',showlegend=False,marker_color='darkorange'), row = i, col = 1)
     for i in range(1,9):
-        fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[7 + i],showlegend=False), row = i, col = 2)
-        fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (7+i)*12 : 12 + (7+i)*12], mode='lines',showlegend=False), row = i, col = 2)
+        fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[7 + i],
+                                   showlegend=False,marker_color='blue'), row = i, col = 2)
+        fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (7+i)*12 : 12 + (7+i)*12],
+                                       mode='lines',showlegend=False,marker_color='darkorange'), row = i, col = 2)
 
 # Берём локальные данные с компьютера, где собрана база данных по лидам. Планируется подключение к SQL-серверу
 main_data = pd.read_excel('/Users/erickgaydin/Desktop/main_data_c.xlsx')
 # Записываем в переменные основные стадии, месяцы и т.д., чтобы удобно работали циклы перебора
 month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь',
          'Ноябрь', 'Декабрь']
-clasters_name = ['Всего','Не обработан', 'В работе', 'Потребность выявлена',
+clasters_name = ['Всего людей в работе','Не обработан', 'В работе', 'Потребность выявлена',
                  'КП отправлено', 'Качественный лид',  'Не оставлял заявку', 'Техническая заявка',
                  'Перестал отвечать (спустя 14 дней)']
 name_consultants = ['Анастасия Шипулина', 'Ксения Комарова', 'Юлия Збрыкина', 'Елена Шавернева', 'Ксения Цветкова',
                     'Анастасия Деккер', 'Юлия Богданова',
                     'Валерий Данилов', 'Алина Позднякова']
-clasters_name_hell = ['Всего', 'Нет услуги, нужной клиенту','Ложный старт','Дорого','Провал','Не подходит по условиям',
+clasters_name_hell = ['Всего людей в работе', 'Нет услуги, нужной клиенту','Ложный старт','Дорого','Провал','Не подходит по условиям',
                       'Выбрал другую компанию','Нужно позже']
 # Функция, которая строит таблицу: у какого консультанта сколько клиентов 
 def how_clients_all():
@@ -327,7 +331,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -369,7 +374,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -407,7 +413,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -445,7 +452,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -483,7 +491,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -521,7 +530,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -559,7 +569,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -597,7 +608,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -635,7 +647,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
+                                                        "darkred", "darkred", "darkred"]}
                                     ),
                                     row = 1, col = 1
                         )
