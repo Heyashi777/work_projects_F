@@ -16,7 +16,7 @@ import datetime
 
 # Функция, которая строит стобчатый график и линию тренда
 def line_new(name):
-    global fig_lines
+    global fig_lines,index_data_color
     
     x_0, x_1, x_2, x_3, x_4 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
     x_5, x_6, x_7, x_8, x_9 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
@@ -75,6 +75,20 @@ def line_new(name):
                 
     array = [x_0, x_1, x_2, x_3, x_4,x_5, x_6, x_7, x_8, x_9,x_10, x_11, x_12, x_13, x_14,x_15 ]   
     array_1 = np.array([])
+    
+    # Color table
+    index_data_color = pd.DataFrame()
+    index_data_color['Стадия'] = range( len(clasters_name_1) )
+    index_data_color['Результат'] = range( len(clasters_name_1) )
+    for i in range(len(clasters_name_1) ):
+        index_data_color.at[i, 'Стадия'] = clasters_name_1[i] 
+        if array[i][ len(array[i])-1 ] > array[i][ len(array[i])-2 ]:
+            index_data_color.at[i, 'Результат'] = 'Положительный'
+        elif array[i][ len(array[i])-1 ] == array[i][ len(array[i])-2 ]:
+            index_data_color.at[i, 'Результат'] = 'Без изменений'
+        else:
+            index_data_color.at[i, 'Результат'] = 'Отрицательный'
+            
     
     for i in range( len(array) ):
         df = pd.DataFrame()
@@ -369,12 +383,39 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines)
@@ -443,6 +484,33 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-4':
@@ -505,6 +573,33 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-5':
@@ -567,6 +662,33 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-6':
@@ -629,6 +751,33 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-7':
@@ -691,6 +840,33 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])   
     if tab == 'tab-8':
@@ -753,6 +929,33 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])   
     if tab == 'tab-9':
@@ -815,6 +1018,33 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-10':
@@ -877,13 +1107,40 @@ def render_content(tab):
             html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                page_size=4,
+                                ),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines),
         ])    
        
 # Запускаем приложение, порт можно любой
 if __name__ == '__main__':
     app.run_server(debug=True, port=8181, use_reloader=False)  
- 
+
 #######################################################
 ##########################################################
 # Открываем приложение 
