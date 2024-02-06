@@ -273,7 +273,7 @@ def lead_from(name):
 ########################################################
 # Добавляем стиль в приложение
 #Второй вариант вариант
-external_stylesheets = ['https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap']
+external_stylesheets = ['https://fonts.cdnfonts.com/css/montserrat']
 colors = {
     'background': '#111111',
     'text': '#0e2230'
@@ -345,37 +345,38 @@ def render_content(tab):
         #lines_clasters(name_c)
          # Создаём наполнение кнопки
         return html.Div([
-            html.H4('Человек в работе:', 
-                           style={
-                                    'textAlign': 'left',
-                                    'color': colors['text']
-                                 }
-                   ),
+            html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
-            html.H4('Воронка продаж', 
-                           style={
-                                    'textAlign': 'left',
-                                    'color': colors['text']
-                                 }
-                   ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
+            html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
-            html.H4('Воронка провалов', 
-                           style={
-                                    'textAlign': 'left',
-                                    'color': colors['text']
-                                 }
-                   ),
+            html.H4('Воронка провалов'),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
-            html.H4('Динамика по стадиям', 
-                           style={
-                                    'textAlign': 'left',
-                                    'color': colors['text']
-                                 }
-                   ),
+            html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines)
         ])
             
@@ -412,7 +413,30 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white',
+                                            'border': 'black'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -453,7 +477,28 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -494,7 +539,28 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -535,7 +601,28 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -576,7 +663,28 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -617,7 +725,28 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -658,7 +787,28 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -699,7 +849,28 @@ def render_content(tab):
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -712,6 +883,7 @@ def render_content(tab):
 # Запускаем приложение, порт можно любой
 if __name__ == '__main__':
     app.run_server(debug=True, port=8181, use_reloader=False)  
+ 
 #######################################################
 ##########################################################
 # Открываем приложение 
