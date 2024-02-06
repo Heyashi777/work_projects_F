@@ -85,13 +85,7 @@ def line_new(name):
         reg = LinearRegression().fit(np.vstack(X), Y)
         df['bestfit'] = reg.predict(np.vstack(X))
         array_1 = np.append(array_1, df['bestfit'])
-        # plotly figure setup
-        figure=go.Figure()
-        figure.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=Y.values))
-        figure.add_trace(go.Scatter(name='линия тренда', x=month, y=df['bestfit'], mode='lines'))
-        # plotly figure layout
-        figure.update_layout(xaxis_title = 'месяц', yaxis_title = 'кол-во клиентов')
-
+        
     fig_lines = make_subplots(rows = 8, cols = 2, subplot_titles = clasters_name_1)
     fig_lines.update_layout(height=1800, width=1250, title_text="Графики кол-во людей на разных стадиях")
     fig_lines.update_xaxes(title_text="Месяц")
@@ -99,14 +93,14 @@ def line_new(name):
     
     for i in range(1,9):
         fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[i - 1],
-                                   showlegend=False,marker_color='blue'), row = i, col = 1)
+                                   showlegend=False,marker_color=('#0E2432')), row = i, col = 1)
         fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (i-1)*12 : 12 + (i-1)*12],
-                                       mode='lines',showlegend=False,marker_color='darkorange'), row = i, col = 1)
+                                       mode='lines',showlegend=False,marker_color=('#BFA168')), row = i, col = 1)
     for i in range(1,9):
         fig_lines.add_trace(go.Bar(name='кол-во человек в месяц', x=month, y=array[7 + i],
-                                   showlegend=False,marker_color='blue'), row = i, col = 2)
+                                   showlegend=False,marker_color=('#0E2432')), row = i, col = 2)
         fig_lines.add_trace(go.Scatter(name='линия тренда', x=month, y=array_1[0 + (7+i)*12 : 12 + (7+i)*12],
-                                       mode='lines',showlegend=False,marker_color='darkorange'), row = i, col = 2)
+                                       mode='lines',showlegend=False,marker_color=('#BFA168')), row = i, col = 2)
 
 # Берём локальные данные с компьютера, где собрана база данных по лидам. Планируется подключение к SQL-серверу
 main_data = pd.read_excel('/Users/erickgaydin/Desktop/main_data_c.xlsx')
@@ -114,7 +108,7 @@ main_data = pd.read_excel('/Users/erickgaydin/Desktop/main_data_c.xlsx')
 month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь',
          'Ноябрь', 'Декабрь']
 clasters_name = ['Всего людей в работе','Не обработан', 'В работе', 'Потребность выявлена',
-                 'КП отправлено', 'Качественный лид',  'Не оставлял заявку', 'Техническая заявка',
+                 'КП отправлено', 'Качественный лид',  'Не оставлял заявку',
                  'Перестал отвечать (спустя 14 дней)']
 name_consultants = ['Анастасия Шипулина', 'Ксения Комарова', 'Юлия Збрыкина', 'Елена Шавернева', 'Ксения Цветкова',
                     'Анастасия Деккер', 'Юлия Богданова',
@@ -278,7 +272,15 @@ def lead_from(name):
 ########################################################
 ########################################################
 # Добавляем стиль в приложение
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+#Второй вариант вариант
+external_stylesheets = ['https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap']
+colors = {
+    'background': '#111111',
+    'text': '#0e2230'
+}
+#Первый вариант 
+#external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
 # Создаём приложение 
 app = dash.Dash(name=__name__, external_stylesheets=external_stylesheets)
 # Делаем наполнение приложения, а именно: кнопки на консультантов и заглавие приложения
@@ -321,7 +323,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -331,8 +335,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -341,17 +345,37 @@ def render_content(tab):
         #lines_clasters(name_c)
          # Создаём наполнение кнопки
         return html.Div([
-            html.H4('Человек в работе:'),
+            html.H4('Человек в работе:', 
+                           style={
+                                    'textAlign': 'left',
+                                    'color': colors['text']
+                                 }
+                   ),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
                      & (main_data['Дата создания.4'] == 12)] ) ),
             dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns], id='tbl'),
-            html.H4('Воронка продаж'),
+            html.H4('Воронка продаж', 
+                           style={
+                                    'textAlign': 'left',
+                                    'color': colors['text']
+                                 }
+                   ),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
-            html.H4('Воронка провалов'),
+            html.H4('Воронка провалов', 
+                           style={
+                                    'textAlign': 'left',
+                                    'color': colors['text']
+                                 }
+                   ),
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
-            html.H4('Динамика по стадиям'),
+            html.H4('Динамика по стадиям', 
+                           style={
+                                    'textAlign': 'left',
+                                    'color': colors['text']
+                                 }
+                   ),
             dcc.Graph(id="graph", figure=fig_lines)
         ])
             
@@ -364,7 +388,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -374,8 +400,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -403,7 +429,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -413,8 +441,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -442,7 +470,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -452,8 +482,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -481,7 +511,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -491,8 +523,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -520,7 +552,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -530,8 +564,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -559,7 +593,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -569,8 +605,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -598,7 +634,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -608,8 +646,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -637,7 +675,9 @@ def render_content(tab):
                                     y = clasters_name,
                                     x = x,
                                     textposition = "inside",
-                                    textinfo = "value+percent initial"
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
                                  ),
                                     row = 1, col = 1
                         )
@@ -647,8 +687,8 @@ def render_content(tab):
                                     x = x_1,
                                     textposition = "inside",
                                     textinfo = "value+percent initial",
-                                    marker = {"color": ["darkred", "darkred", "darkred", "darkred", "darkred",
-                                                        "darkred", "darkred", "darkred"]}
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
                                     ),
                                     row = 1, col = 1
                         )
@@ -671,9 +711,8 @@ def render_content(tab):
        
 # Запускаем приложение, порт можно любой
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8180, use_reloader=False)  
-
-##########################################################
+    app.run_server(debug=True, port=8181, use_reloader=False)  
+#######################################################
 ##########################################################
 # Открываем приложение 
-# app.run(jupyter_mode="external", port=8180)
+# app.run(jupyter_mode="external", port=8181)
