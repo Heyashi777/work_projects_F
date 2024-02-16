@@ -13,10 +13,11 @@ from plotly.subplots import make_subplots
 import csv
 from sklearn.linear_model import LinearRegression
 import datetime
+import dash_auth
 
 # Функция, которая строит стобчатый график и линию тренда
 def line_new(name):
-    global fig_lines,index_data_color
+    global fig_lines,index_data_color_good, index_data_color_other
     
     x_0, x_1, x_2, x_3, x_4 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
     x_5, x_6, x_7, x_8, x_9 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
@@ -29,6 +30,17 @@ def line_new(name):
                        'Не оставлял заявку', 'Провал', 'Техническая заявка',
                        'Не подходит по условиям', 'Перестал отвечать (спустя 14 дней)',
                        'Выбрал другую компанию']
+    
+    clasters_name_good = ['В работе', 'Потребность выявлена',
+                        'КП отправлено', 'Качественный лид']
+    clasters_name_other = ['Не обработан', 'Нужно позже',
+                       'Нет услуги, нужной клиенту',
+                       'Ложный старт', 'Не можем отправить сообщение', 'Дорого',
+                       'Не оставлял заявку', 'Провал', 'Техническая заявка',
+                       'Не подходит по условиям', 'Перестал отвечать (спустя 14 дней)',
+                       'Выбрал другую компанию']
+    array = [ x_1, x_3,x_5, x_6]  
+    array = [x_0, x_2, x_4, x_7, x_8, x_9,x_10, x_11, x_12, x_13, x_14,x_15 ]   
     month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь',
              'Октябрь', 'Ноябрь', 'Декабрь']
     
@@ -75,20 +87,38 @@ def line_new(name):
                 
     array = [x_0, x_1, x_2, x_3, x_4,x_5, x_6, x_7, x_8, x_9,x_10, x_11, x_12, x_13, x_14,x_15 ]   
     array_1 = np.array([])
+    array_good = [ x_1, x_3,x_5, x_6]  
+    array_other = [x_0, x_2, x_4, x_7, x_8, x_9,x_10, x_11, x_12, x_13, x_14,x_15 ] 
     
     # Color table
-    index_data_color = pd.DataFrame()
-    index_data_color['Стадия'] = range( len(clasters_name_1) )
-    index_data_color['Результат'] = range( len(clasters_name_1) )
-    for i in range(len(clasters_name_1) ):
-        index_data_color.at[i, 'Стадия'] = clasters_name_1[i] 
-        if array[i][ len(array[i])-1 ] > array[i][ len(array[i])-2 ]:
-            index_data_color.at[i, 'Результат'] = 'Положительный'
-        elif array[i][ len(array[i])-1 ] == array[i][ len(array[i])-2 ]:
-            index_data_color.at[i, 'Результат'] = 'Без изменений'
+    index_data_color_good = pd.DataFrame()
+    index_data_color_good['Стадия'] = range( len(clasters_name_good) )
+    index_data_color_good['Результат'] = range( len(clasters_name_good) )
+    index_data_color_other = pd.DataFrame()
+    index_data_color_other['Стадия'] = range( len(clasters_name_other) )
+    index_data_color_other['Результат'] = range( len(clasters_name_other) )
+    for i in range(len(clasters_name_good) ):
+        index_data_color_good.at[i, 'Стадия'] = clasters_name_good[i] 
+        if array_good[i][ len(array_good[i])-2 ] == 0:
+            index_data_color_good.at[i, 'Результат'] = 0
         else:
-            index_data_color.at[i, 'Результат'] = 'Отрицательный'
-            
+            if array_good[i][ len(array_good[i])-1 ] == array_good[i][ len(array_good[i])-2 ]:
+                index_data_color_good.at[i, 'Результат'] = 0
+            else:
+                index_data_color_good.at[i, 'Результат'] = round(float(((array_good[i][ len(array_good[i])-1 ]*100)/array_good[i][ len(array_good[i])-2 ])-100),2)
+                
+    for i in range(len(clasters_name_other) ):
+        index_data_color_other.at[i, 'Стадия'] = clasters_name_other[i] 
+        if array_other[i][ len(array_other[i])-2 ] == 0:
+            index_data_color_other.at[i, 'Результат'] = 0
+        else:
+            if array_other[i][ len(array_other[i])-1 ] == array_other[i][ len(array_other[i])-2 ]:
+                index_data_color_other.at[i, 'Результат'] = 0
+            else:
+                index_data_color_other.at[i, 'Результат'] = round(float(((array_other[i][ len(array_other[i])-1 ]*100)/array_other[i][ len(array_other[i])-2 ])-100),2)
+                                                                  
+    # index_data_color.style.applymap(lambda x: 'background-color : orange' if type(x) is float else '')
+       
     
     for i in range( len(array) ):
         df = pd.DataFrame()
@@ -140,83 +170,6 @@ def how_clients_all():
         data_how_clients.at[i,'Кол-во человек'] = len(main_data[ (main_data['Кем создан'] == name_consultants[i])
                                                                 & (main_data['Дата создания.4'] == 12 ) ])
         
-# Функция, которая строит 16 графиков по кол-ву людей на каждой стадии по месяцам
-
-def lines_clasters(name):
-    global fig_lines
-    x_0, x_1, x_2, x_3, x_4 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-    x_5, x_6, x_7, x_8, x_9 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-    x_10, x_11, x_12, x_13, x_14 = np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-    x_15 = np.array([])
-    clasters_name_1 = ['Не обработан', 'В работе', 'Нужно позже', 'Потребность выявлена',
-                       'Нет услуги, нужной клиенту', 'КП отправлено', 'Качественный лид',
-                       'Ложный старт', 'Не можем отправить сообщение', 'Дорого',
-                       'Не оставлял заявку', 'Провал', 'Техническая заявка',
-                       'Не подходит по условиям', 'Перестал отвечать (спустя 14 дней)',
-                       'Выбрал другую компанию']
-    month = ['Январь','Февраль','Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь',
-             'Октябрь', 'Ноябрь', 'Декабрь']
-    for j in range(16):
-        for i in range(1, 13):
-            y = len (
-                main_data[ (main_data['Кем создан'] == name) &
-                           (main_data['Дата создания.4'] == i) &
-                           (main_data['Стадия'] == clasters_name_1[j])
-                         ] 
-                    )
-            if j == 0:
-                x_0 = np.append(x_0, y)
-            elif j == 1:
-                x_1 = np.append(x_1, y)
-            elif j == 2:
-                x_2 = np.append(x_2, y)
-            elif j == 3:
-                x_3 = np.append(x_3, y)
-            elif j == 4:
-                x_4 = np.append(x_4, y)
-            elif j == 5:
-                x_5 = np.append(x_5, y)
-            elif j == 6:
-                x_6 = np.append(x_6, y)
-            elif j == 7:
-                x_7 = np.append(x_7, y)
-            elif j == 8:
-                x_8 = np.append(x_8, y)
-            elif j == 9:
-                x_9 = np.append(x_9, y)
-            elif j == 10:
-                x_10 = np.append(x_10, y)
-            elif j == 11:
-                x_11 = np.append(x_11, y)
-            elif j == 12:
-                x_12 = np.append(x_12, y)
-            elif j == 13:
-                x_13 = np.append(x_13, y)
-            elif j == 14:
-                x_14 = np.append(x_14, y)
-            elif j == 15:
-                x_15 = np.append(x_15, y)
-    fig_lines = make_subplots(rows = 8, cols = 2, subplot_titles = clasters_name_1)
-    fig_lines.update_layout(height=1800, width=1250, title_text="Графики кол-во людей на разных стадиях")
-    fig_lines.update_xaxes(title_text="Месяц")
-    fig_lines.update_yaxes(title_text="Кол-во клиентов")
-    fig_lines.add_trace(go.Scatter(x=month, y=x_0, name = clasters_name_1[0],showlegend=False), row = 1, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_1, name = clasters_name_1[1],showlegend=False), row = 1, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_2, name = clasters_name_1[2],showlegend=False), row = 2, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_3, name = clasters_name_1[3],showlegend=False), row = 2, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_4, name = clasters_name_1[4],showlegend=False), row = 3, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_5, name = clasters_name_1[5],showlegend=False), row = 3, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_6, name = clasters_name_1[6],showlegend=False), row = 4, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_7, name = clasters_name_1[7],showlegend=False), row = 4, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_8, name = clasters_name_1[8],showlegend=False), row = 5, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_9, name = clasters_name_1[9],showlegend=False), row = 5, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_10, name = clasters_name_1[10],showlegend=False), row = 6, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_11, name = clasters_name_1[11],showlegend=False), row = 6, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_12, name = clasters_name_1[12],showlegend=False), row = 7, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_13, name = clasters_name_1[13],showlegend=False), row = 7, col = 2)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_14, name = clasters_name_1[14],showlegend=False), row = 8, col = 1)
-    fig_lines.add_trace(go.Scatter(x=month, y=x_15, name = clasters_name_1[15],showlegend=False), row = 8, col = 2)
-
 # Функция, которая строит воронку продаж и воронку  провалов
 def voronka(name):
     global x, x_1
@@ -292,11 +245,13 @@ colors = {
     'background': '#111111',
     'text': '#0e2230'
 }
+
 #Первый вариант 
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # Создаём приложение 
 app = dash.Dash(name=__name__, external_stylesheets=external_stylesheets)
+
 # Делаем наполнение приложения, а именно: кнопки на консультантов и заглавие приложения
 app.layout = html.Div([
     html.H1('Аналитика Finion',
@@ -313,7 +268,8 @@ app.layout = html.Div([
         dcc.Tab(label="<Без имени>", value='tab-9'),
         dcc.Tab(label='Администратор Портала', value='tab-10'),      
     ]),
-    html.Div(id='tabs-content')
+    html.Div(id='tabs-content'),
+    html.A(html.Button('Refresh Data'),href='/'),
     ])
 
 @callback(Output('tabs-content', 'children',allow_duplicate=False),
@@ -331,6 +287,171 @@ def render_content(tab):
     if tab == 'tab-2':
         # Запускаем функции, которые делают глобальные переменные с графиками и таблицами
         name_c = 'Ксения Комарова'
+        voronka(name_c)
+        fig_twins = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins.add_trace(go.Funnel(
+                                    y = clasters_name,
+                                    x = x,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
+                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
+                                 ),
+                                    row = 1, col = 1
+                        )
+        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
+        fig_twins_1.add_trace(go.Funnel(
+                                    y = clasters_name_hell,
+                                    x = x_1,
+                                    textposition = "inside",
+                                    textinfo = "value+percent initial",
+                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
+                                                        "#c34532", "#c34532", "#c34532"]}
+                                    ),
+                                    row = 1, col = 1
+                        )
+        lead_from(name_c)
+        line_new(name_c)
+        #lines_clasters(name_c)
+         # Создаём наполнение кнопки
+        return html.Div([
+            html.H4('Человек в работе:'),
+            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
+                     & (main_data['Дата создания.4'] == 12)] ) ),
+            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white',
+                                            'whiteSpace': 'normal',
+                                            'height': 'auto',
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        }
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                 id='tbl'),
+            html.H4('Воронка продаж'),
+            dcc.Graph(id="graph", figure=fig_twins),
+            html.Hr(),
+            html.H4('Воронка провалов'),
+            dcc.Graph(id="graph", figure=fig_twins_1),
+            html.Hr(),
+            html.H4('Результаты за прошлый месяц'),
+            html.Div(children=[
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white',
+                                            'whiteSpace': 'normal',
+                                            'height': '250',
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                 fill_width=False,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white',
+                                            'whiteSpace': 'normal',
+                                            'height': '250',
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
+                                 fill_width=False,
+                                ),
+                    ]),
+            html.Hr(),
+            html.H4('Динамика по стадиям'),
+            dcc.Graph(id="graph", figure=fig_lines)
+        ])
+            
+    if tab == 'tab-3':
+            
+        name_c = 'Анастасия Деккер'
         voronka(name_c)
         fig_twins = make_subplots(rows = 1, cols = 1 ) 
         fig_twins.add_trace(go.Funnel(
@@ -392,13 +513,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -407,111 +532,76 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
             dcc.Graph(id="graph", figure=fig_lines)
-        ])
-            
-    if tab == 'tab-3':
-            
-        name_c = 'Анастасия Деккер'
-        voronka(name_c)
-        fig_twins = make_subplots(rows = 1, cols = 1 ) 
-        fig_twins.add_trace(go.Funnel(
-                                    y = clasters_name,
-                                    x = x,
-                                    textposition = "inside",
-                                    textinfo = "value+percent initial",
-                                    marker = {"color": ["#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2",
-                                                        "#4e67a2", "#4e67a2", "#4e67a2", "#4e67a2" ]}
-                                 ),
-                                    row = 1, col = 1
-                        )
-        fig_twins_1 = make_subplots(rows = 1, cols = 1 ) 
-        fig_twins_1.add_trace(go.Funnel(
-                                    y = clasters_name_hell,
-                                    x = x_1,
-                                    textposition = "inside",
-                                    textinfo = "value+percent initial",
-                                    marker = {"color": ["#c34532", "#c34532", "#c34532", "#c34532", "#c34532",
-                                                        "#c34532", "#c34532", "#c34532"]}
-                                    ),
-                                    row = 1, col = 1
-                        )
-        lead_from(name_c)
-        line_new(name_c)
-        #lines_clasters(name_c)
-        return html.Div([
-            html.H4('Человек в работе:'),
-            html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
-                     & (main_data['Дата создания.4'] == 12)] ) ),
-            dash_table.DataTable(df.to_dict('records'),[{"name": i, "id": i} for i in df.columns],
-                                 style_cell_conditional=[
-                                                        {
-                                                        'if': {'column_id': i},
-                                                        'textAlign': 'centr'
-                                                        } for i in ['Источник', 'Кол-во лидов']
-                                                        ],
-                                style_data={
-                                            'color': 'black',
-                                            'backgroundColor': 'white',
-                                            'border': 'black'
-                                            },
-                                style_data_conditional=[
-                                                        {
-                                                        'if': {'row_index': 'odd'},
-                                                        'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
-                                                        ],
-                                style_header={
-                                                'backgroundColor': 'rgb(210, 210, 210)',
-                                                'color': 'black',
-                                                'fontWeight': 'bold'
-                                                },
-                                id='tbl'),
-            html.H4('Воронка продаж'),
-            dcc.Graph(id="graph", figure=fig_twins),
-            html.Hr(),
-            html.H4('Воронка провалов'),
-            dcc.Graph(id="graph", figure=fig_twins_1),
-            html.Hr(),
-            html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
-                                 style_cell_conditional=[
-                                                        {
-                                                        'if': {'column_id': i},
-                                                        'textAlign': 'centr'
-                                                        } for i in ['Источник', 'Кол-во лидов']
-                                                        ],
-                                style_data={
-                                            'color': 'black',
-                                            'backgroundColor': 'white'
-                                            },
-                                style_data_conditional=[
-                                                        {
-                                                        'if': {'row_index': 'odd'},
-                                                        'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
-                                                        ],
-                                style_header={
-                                                'backgroundColor': 'rgb(210, 210, 210)',
-                                                'color': 'black',
-                                                'fontWeight': 'bold'
-                                                },
-                                page_size=4,
-                                ),
-            html.Hr(),
-            html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
         ])
     if tab == 'tab-4':
         name_c = 'Юлия Богданова'
@@ -541,6 +631,7 @@ def render_content(tab):
         lead_from(name_c)
         line_new(name_c)
         #lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -566,7 +657,8 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -574,13 +666,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -589,18 +685,76 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
+            dcc.Graph(id="graph", figure=fig_lines)
         ])
     if tab == 'tab-5':
         name_c = 'Елена Шавернева'
@@ -630,6 +784,7 @@ def render_content(tab):
         lead_from(name_c)
         line_new(name_c)
         #lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -655,7 +810,8 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -663,13 +819,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -678,18 +838,76 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
+            dcc.Graph(id="graph", figure=fig_lines)
         ])
     if tab == 'tab-6':
         name_c = "Ксения Цветкова"
@@ -719,6 +937,7 @@ def render_content(tab):
         lead_from(name_c)
         line_new(name_c)
         #lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -744,7 +963,8 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -752,13 +972,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -767,18 +991,76 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
+            dcc.Graph(id="graph", figure=fig_lines)
         ])
     if tab == 'tab-7':
         name_c = "Юлия Збрыкина"
@@ -808,6 +1090,7 @@ def render_content(tab):
         lead_from(name_c)
         line_new(name_c)
         #lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -833,7 +1116,8 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -841,13 +1125,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -856,19 +1144,77 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
-        ])   
+            dcc.Graph(id="graph", figure=fig_lines)
+        ])  
     if tab == 'tab-8':
         name_c = "Анастасия Шипулина"
         voronka(name_c)
@@ -897,6 +1243,7 @@ def render_content(tab):
         lead_from(name_c)
         line_new(name_c)
         #lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -922,7 +1269,8 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -930,13 +1278,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -945,18 +1297,76 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
+            dcc.Graph(id="graph", figure=fig_lines)
         ])   
     if tab == 'tab-9':
         name_c = "<Без имени>"
@@ -986,6 +1396,7 @@ def render_content(tab):
         lead_from(name_c)
         line_new(name_c)
         #lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -1011,7 +1422,8 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -1019,13 +1431,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -1034,18 +1450,76 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
+            dcc.Graph(id="graph", figure=fig_lines)
         ])
     if tab == 'tab-10':
         name_c = "Администратор Портала"
@@ -1075,6 +1549,7 @@ def render_content(tab):
         lead_from(name_c)
         line_new(name_c)
         #lines_clasters(name_c)
+         # Создаём наполнение кнопки
         return html.Div([
             html.H4('Человек в работе:'),
             html.H4( len(main_data[ (main_data['Кем создан'] == name_c) 
@@ -1100,7 +1575,8 @@ def render_content(tab):
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
-                                                },id='tbl'),
+                                                },
+                                 id='tbl'),
             html.H4('Воронка продаж'),
             dcc.Graph(id="graph", figure=fig_twins),
             html.Hr(),
@@ -1108,13 +1584,17 @@ def render_content(tab):
             dcc.Graph(id="graph", figure=fig_twins_1),
             html.Hr(),
             html.H4('Результаты за прошлый месяц'),
-            dash_table.DataTable(index_data_color.to_dict('records'),[{"name": i, "id": i} for i in index_data_color.columns],
+            dash_table.DataTable(index_data_color_good.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_good.columns],
                                  style_cell_conditional=[
                                                         {
                                                         'if': {'column_id': i},
                                                         'textAlign': 'centr'
                                                         } for i in ['Источник', 'Кол-во лидов']
                                                         ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
                                 style_data={
                                             'color': 'black',
                                             'backgroundColor': 'white'
@@ -1123,20 +1603,78 @@ def render_content(tab):
                                                         {
                                                         'if': {'row_index': 'odd'},
                                                         'backgroundColor': 'rgb(220, 220, 220)',
-                                                        }
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
                                                         ],
                                 style_header={
                                                 'backgroundColor': 'rgb(210, 210, 210)',
                                                 'color': 'black',
                                                 'fontWeight': 'bold'
                                                 },
-                                page_size=4,
+                                ),
+            dash_table.DataTable(index_data_color_other.to_dict('records'),[{"name": i, "id": i} for i in index_data_color_other.columns],
+                                 style_cell_conditional=[
+                                                        {
+                                                        'if': {'column_id': i},
+                                                        'textAlign': 'centr'
+                                                        } for i in ['Источник', 'Кол-во лидов']
+                                                        ],
+                                style_cell={'textAlign':'center',
+                                            'minWidth': 600, 'maxWidth': 600, 'width': 600,
+                                            'font_size': '12px','whiteSpace':'normal',
+                                            'height':'auto'},
+                                style_data={
+                                            'color': 'black',
+                                            'backgroundColor': 'white'
+                                            },
+                                style_data_conditional=[
+                                                        {
+                                                        'if': {'row_index': 'odd'},
+                                                        'backgroundColor': 'rgb(220, 220, 220)',
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} < 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#6cbc76',
+                                                        'color': 'white'
+                                                        },
+                                                        {
+                                                        'if': {
+                                                               'filter_query': '{Результат} > 0',
+                                                               'column_id': 'Результат',
+                                                              },
+                                                        'backgroundColor': '#de564a',
+                                                        'color': 'white'
+                                                        },
+                                                        ],
+                                style_header={
+                                                'backgroundColor': 'rgb(210, 210, 210)',
+                                                'color': 'black',
+                                                'fontWeight': 'bold'
+                                                },
                                 ),
             html.Hr(),
             html.H4('Динамика по стадиям'),
-            dcc.Graph(id="graph", figure=fig_lines),
+            dcc.Graph(id="graph", figure=fig_lines)
         ])    
-       
+app.scripts.config.serve_locally = True
 # Запускаем приложение, порт можно любой
 if __name__ == '__main__':
     app.run_server(debug=True, port=8181, use_reloader=False)  
